@@ -1,0 +1,29 @@
+{
+  "name": "signaldesk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@prisma/client": "^6.6.0",
+    "date-fns": "^4.1.0",
+    "next": "15.5.14",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "prisma": "^6.6.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
+  }
+}
