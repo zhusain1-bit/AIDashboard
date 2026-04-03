@@ -24,7 +24,19 @@ export default function BriefCard({
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-xs text-gray-500">
-          {brief.source ? `${brief.source} · ` : ""}
+          {brief.source && !brief.articleUrl.startsWith("https://signaldesk.mock") ? (
+            <a
+              href={brief.articleUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-[var(--green)]"
+            >
+              {brief.source} ↗
+            </a>
+          ) : (
+            brief.source ?? null
+          )}
+          {brief.source ? " · " : ""}
           {formatDistanceToNow(new Date(brief.publishedAt), { addSuffix: true })}
         </span>
         <span className="rounded-full bg-[var(--green-light)] px-3 py-1 text-xs font-medium text-[var(--green)]">
