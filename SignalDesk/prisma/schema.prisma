@@ -19,11 +19,12 @@ model User {
   createdAt     DateTime  @default(now())
   accounts      Account[]
   sessions      Session[]
+  searches      Search[]
 }
 
 model Brief {
-  id             String   @id @default(cuid())
-  articleUrl     String   @unique
+  id             String    @id @default(cuid())
+  articleUrl     String    @unique
   articleTitle   String
   sector         String
   headline       String
@@ -32,7 +33,18 @@ model Brief {
   interviewAngle String
   flashCards     String
   publishedAt    DateTime
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
+  query          String?
+  parsedTerms    String?
+  source         String?
+}
+
+model Search {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Waitlist {
