@@ -17,15 +17,18 @@ export default function BriefCard({
   onClick
 }: BriefCardProps) {
   const isHashLink = href.startsWith("#");
+  const anglePreview =
+    brief.interviewAngle.slice(0, 60) + (brief.interviewAngle.length > 60 ? "…" : "");
 
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
       <div className="mb-4 flex items-center justify-between gap-3">
+        <span className="text-xs text-gray-500">
+          {brief.source ? `${brief.source} · ` : ""}
+          {formatDistanceToNow(new Date(brief.publishedAt), { addSuffix: true })}
+        </span>
         <span className="rounded-full bg-[var(--green-light)] px-3 py-1 text-xs font-medium text-[var(--green)]">
           {brief.sector}
-        </span>
-        <span className="text-xs text-gray-500">
-          {formatDistanceToNow(new Date(brief.publishedAt), { addSuffix: true })}
         </span>
       </div>
 
@@ -41,6 +44,10 @@ export default function BriefCard({
             {point}
           </span>
         ))}
+      </div>
+
+      <div className="mt-4 border-l-2 border-[var(--green)] pl-3">
+        <p className="text-sm italic text-gray-500">{anglePreview}</p>
       </div>
 
       {isHashLink ? (
