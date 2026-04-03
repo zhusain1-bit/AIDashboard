@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { Article, BriefContent, FlashCard } from "@/types/signaldesk";
+import { Article, BriefContent, FlashCard, ParsedQuery } from "@/types/signaldesk";
 
 const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -152,4 +152,66 @@ Return a JSON array of exactly 2 objects, each with:
   }
 
   return defaultFlashCards(brief, sector);
+}
+
+export async function generateBriefForQuery(
+  article: Article,
+  parsedQuery: ParsedQuery
+): Promise<BriefContent> {
+  const system = `You are a senior finance analyst briefing a junior analyst who is interviewing. ${parsedQuery.interviewContext} Be direct, technically precise, and always frame insights through the lens of what matters to someone in that specific role. Return only valid JSON.`;
+
+  const user = `Generate an interview-ready brief for a student interviewing for ${parsedQuery.contextLabel}.
+
+Article title: ${article.title}
+Article description: ${article.description}
+Source: ${article.sourceName}
+
+Return a JSON object with exactly these fields:
+- headline: string (punchy rewrite, max 12 words, written for a finance professional)
+- deck: string (2-sentence analyst-level summary, max 40 words)
+- talking_points: string[] (exactly 3, each max 4 words, noun-phrase format e.g. 'Spread compression dynamics')
+- interview_angle: string (exactly 1 sentence — what this student should say if asked about this topic by an interviewer at ${parsedQuery.company ?? "a top finance firm"} on the ${parsedQuery.role ?? parsedQuery.sector ?? "finance"} desk)`;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const text = await requestClaudeJson(system, user);
+      if (!text) break;
+      const parsed = JSON.parse(text) as Partial<BriefContent>;
+      return normalizeBrief(parsed, article, parsedQuery.contextLabel);
+    } catch {
+      continue;
+    }
+  }
+
+  return normalizeBrief({}, article, parsedQuery.contextLabel);
+}
+
+export async function generateFlashCardsForQuery(
+  brief: BriefContent,
+  parsedQuery: ParsedQuery
+): Promise<FlashCard[]> {
+  const system = `You are a Managing Director interviewing a candidate for ${parsedQuery.contextLabel}. Return only valid JSON.`;
+
+  const user = `Generate exactly 2 interview flash cards testing knowledge relevant to ${parsedQuery.contextLabel}.
+
+Brief headline: ${brief.headline}
+Brief deck: ${brief.deck}
+
+Return a JSON array of exactly 2 objects:
+- question: string (what you as an MD would ask, max 20 words, specific to this role/firm context)
+- answer: string (the answer a top candidate would give, technically precise, 2-3 sentences)`;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const text = await requestClaudeJson(system, user);
+      if (!text) break;
+      const parsed = JSON.parse(text) as FlashCard[];
+      const normalized = parsed.filter((card) => card?.question && card?.answer).slice(0, 2);
+      if (normalized.length === 2) return normalized;
+    } catch {
+      continue;
+    }
+  }
+
+  return defaultFlashCards(brief, parsedQuery.contextLabel);
 }
