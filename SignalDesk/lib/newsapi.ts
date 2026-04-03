@@ -1,6 +1,7 @@
 import { fetchFmpArticlesForSector } from "@/lib/fmp";
 import { getSectorById } from "@/lib/sectors";
-import { Article } from "@/types/signaldesk";
+import { Article, ParsedQuery } from "@/types/signaldesk";
+import { getMockArticles } from "@/lib/mockData";
 
 export const MOCK_ARTICLES: Record<string, Article[]> = {
   "private-credit": [
@@ -228,4 +229,55 @@ export async function fetchArticlesForSector(sectorId: string): Promise<Article[
   ).slice(0, 5);
 
   return combined.length > 0 ? combined : getFallbackArticles(sectorId);
+}
+
+export async function fetchArticles(parsedQuery: ParsedQuery): Promise<Article[]> {
+  const apiKey = process.env.NEWSAPI_KEY;
+
+  if (!apiKey) {
+    return getMockArticles(parsedQuery);
+  }
+
+  try {
+    const url = new URL("https://newsapi.org/v2/everything");
+    url.searchParams.set("q", parsedQuery.newsApiQuery);
+    url.searchParams.set("language", "en");
+    url.searchParams.set("sortBy", "publishedAt");
+    url.searchParams.set("pageSize", "8");
+
+    const response = await fetch(url.toString(), {
+      headers: { "X-Api-Key": apiKey },
+      next: { revalidate: 0 }
+    });
+
+    if (!response.ok) {
+      return getMockArticles(parsedQuery);
+    }
+
+    const data = (await response.json()) as {
+      articles?: Array<{
+        title?: string;
+        description?: string;
+        url?: string;
+        publishedAt?: string;
+        source?: { name?: string };
+      }>;
+    };
+
+    const articles =
+      data.articles
+        ?.filter((a) => a.title && a.url)
+        .map((a) => ({
+          title: a.title ?? "Untitled",
+          description: a.description ?? "No summary available.",
+          url: a.url ?? "",
+          sourceName: a.source?.name ?? "NewsAPI",
+          publishedAt: a.publishedAt ?? new Date().toISOString()
+        }))
+        .slice(0, 8) ?? [];
+
+    return articles.length > 0 ? dedupeArticles(articles) : getMockArticles(parsedQuery);
+  } catch {
+    return getMockArticles(parsedQuery);
+  }
 }
