@@ -29,6 +29,15 @@ export interface SectorDef {
   }>;
 }
 
+export interface ParsedQuery {
+  role: string | null
+  company: string | null
+  sector: string | null
+  newsApiQuery: string
+  contextLabel: string
+  interviewContext: string
+}
+
 export interface BriefApiItem {
   id: string;
   sectorId?: string;
@@ -42,6 +51,9 @@ export interface BriefApiItem {
   flashCards: FlashCard[];
   publishedAt: string;
   createdAt: string;
+  query?: string;
+  contextLabel?: string;
+  source?: string;
 }
 
 export interface TranscriptItem {
