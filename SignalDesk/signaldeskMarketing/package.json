@@ -1,0 +1,23 @@
+{
+  "name": "signaldesk-marketing",
+  "version": "1.0.0",
+  "description": "Autonomous weekly marketing pipeline for SignalDesk",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  }
+}
